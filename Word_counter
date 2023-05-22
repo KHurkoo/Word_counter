@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <title>Word Counter</title>
+
+  <style>
+
+    body {
+
+      background-color: #f1f1f1;
+
+      font-family: Arial, sans-serif;
+
+    }
+
+    
+
+    .container {
+
+      background-color: #fff;
+
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+
+      padding: 20px;
+
+      margin: 20px auto;
+
+      max-width: 800px;
+
+      border-radius: 4px;
+
+    }
+
+    
+
+    textarea {
+
+      width: 100%;
+
+      height: auto;
+
+      min-height: 150px;
+
+      max-height: 300px;
+
+      padding: 12px;
+
+      box-sizing: border-box;
+
+      border: 2px solid #ccc;
+
+      border-radius: 4px;
+
+      resize: vertical;
+
+    }
+
+    
+
+    #output {
+
+      padding: 12px;
+
+    }
+
+    
+
+    #output .counter {
+
+      margin-right: 20px;
+
+      display: inline-block;
+
+    }
+
+    
+
+    #output .counter span {
+
+      display: block;
+
+    }
+
+    
+
+    #keywords {
+
+      margin-top: 20px;
+
+    }
+
+    
+
+    #keywords h3 {
+
+      margin-bottom: 10px;
+
+    }
+
+    
+
+    #keywords table {
+
+      width: 100%;
+
+      border-collapse: collapse;
+
+    }
+
+    
+
+    #keywords th,
+
+    #keywords td {
+
+      padding: 8px;
+
+      text-align: left;
+
+      border-bottom: 1px solid #ccc;
+
+    }
+
+    
+
+    #keywords th {
+
+      background-color: #f9f9f9;
+
+    }
+
+    
+
+    button {
+
+      background-color: green;
+
+      color: white;
+
+      padding: 12px 20px;
+
+      border: none;
+
+      border-radius: 4px;
+
+      cursor: pointer;
+
+    }
+
+    
+
+    button:hover {
+
+      background-color: darkgreen;
+
+    }
+
+    
+
+    footer {
+
+      text-align: center;
+
+      padding-top: 20px;
+
+      padding-bottom: 20px;
+
+    }
+
+    
+
+    .dark-mode {
+
+      background-color: #222;
+
+      color: #fff;
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Word Counter</h1>
+
+    <textarea id="text" placeholder="Enter text here..."></textarea>
+
+    <button onclick="clearText()">Clear</button>
+
+    <div id="output">
+
+      <div class="counter">Word Count:<br><span id="wordCount">0</span></div>
+
+      <div class="counter">Character Count:<br><span id="charCount">0</span></div>
+
+      <div class="counter">Line Count:<br><span id="lineCount">0</span></div>
+
+      <div class="counter">Punctuation Count:<br><span id="punctCount">0</span></div>
+
+      <div class="counter">Paragraph Count:<br><span id="paraCount">0</span></div>
+
+      <div class="counter">Sentence Count:<br><span id="sentenceCount">0</span></div>
+
+      <div class="counter">Syllable Count:<br><span id="syllableCount">0</span></div>
+
+      <div class="counter">Unique Word Count:<br><span id="uniqueWordCount">0</span></div>
+
+    </div>
+
+    <div id="keywords">
+
+      <h3>Top Keywords:</h3>
+
+      <table id="keywordTable">
+
+        <thead>
+
+          <tr>
+
+            <th>Keyword</th>
+
+            <th>Frequency</th>
+
+            <th>Percentage</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody id="keywordList"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <footer>
+
+    Developed by KH
+
+  </footer>
+
+  <script>
+
+    const textArea = document.getElementById("text");
+
+    const counters = {
+
+      wordCount: document.getElementById("wordCount"),
+
+      charCount: document.getElementById("charCount"),
+
+      lineCount: document.getElementById("lineCount"),
+
+      punctCount: document.getElementById("punctCount"),
+
+      paraCount: document.getElementById("paraCount"),
+
+      sentenceCount: document.getElementById("sentenceCount"),
+
+      syllableCount: document.getElementById("syllableCount"),
+
+      uniqueWordCount: document.getElementById("uniqueWordCount"),
+
+    };
+
+    const keywordList = document.getElementById("keywordList");
+
+    function updateCounts() {
+
+      const text = textArea.value.trim();
+
+      if (text.length === 0) {
+
+        resetCounts();
+
+        return;
+
+      }
+
+      counters.wordCount.textContent = text.split(/\s+/).length;
+
+      counters.charCount.textContent = text.length;
+
+      counters.lineCount.textContent = text.split(/\r\n|\r|\n/).length;
+
+      counters.punctCount.textContent = text.match(/[^\w\s]|_/g)?.length || 0;
+
+      counters.paraCount.textContent = text.split(/\n{2,}/).length;
+
+      counters.sentenceCount.textContent = text.split(/[.?!]+/).length;
+
+      counters.syllableCount.textContent = countSyllables(text);
+
+      counters.uniqueWordCount.textContent = countUniqueWords(text);
+
+      updateKeywords(text);
+
+    }
+
+    function resetCounts() {
+
+      for (const counter in counters) {
+
+        counters[counter].textContent = "0";
+
+      }
+
+      keywordList.innerHTML = "";
+
+    }
+
+    function countSyllables(word) {
+
+      word = word.toLowerCase();
+
+      if (word.length <= 3) {
+
+        return 1;
+
+      }
+
+      word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+
+      word = word.replace(/^y/, '');
+
+      let syllableCount = word.match(/[aeiouy]{1,2}/g)?.length || 0;
+
+      const exceptions = ['ia', 'ea', 'ie', 'io', 'ou', 'ue'];
+
+      exceptions.forEach(exception => {
+
+        if (word.includes(exception)) {
+
+          syllableCount++;
+
+        }
+
+      });
+
+      const subSyllabic = ['cial', 'tia', 'cius', 'cious', 'giu', 'ion', 'iou'];
+
+      subSyllabic.forEach(subSyl => {
+
+        if (word.includes(subSyl)) {
+
+          syllableCount--;
+
+        }
+
+      });
+
+      const addSyllabic = ['ia', 'riet', 'dien', 'iu', 'io', 'ii'];
+
+      addSyllabic.forEach(addSyl => {
+
+        if (word.includes(addSyl)) {
+
+          syllableCount++;
+
+        }
+
+      });
+
+      return syllableCount;
+
+    }
+
+    function countUniqueWords(text) {
+
+      const words = text.toLowerCase().match(/\b\w+\b/g);
+
+      if (!words) {
+
+        return 0;
+
+      }
+
+      const uniqueWords = new Set(words);
+
+      return uniqueWords.size;
+
+    }
+
+    function updateKeywords(text) {
+
+      const words = text.toLowerCase().match(/\b\w+\b/g);
+
+      if (!words) {
+
+        keywordList.innerHTML = "";
+
+        return;
+
+      }
+
+      const wordCountMap = {};
+
+      words.forEach(word => {
+
+        wordCountMap[word] = (wordCountMap[word] || 0) + 1;
+
+      });
+
+      const sortedKeywords = Object.keys(wordCountMap).sort((a, b) => wordCountMap[b] - wordCountMap[a]);
+
+      keywordList.innerHTML = "";
+
+      sortedKeywords.slice(0, 5).forEach(keyword => {
+
+        const frequency = wordCountMap[keyword];
+
+        const percentage = ((frequency / words.length) * 100).toFixed(2);
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `<td>${keyword}</td><td>${frequency}</td><td>${percentage}%</td>`;
+
+        keywordList.appendChild(row);
+
+      });
+
+    }
+
+    function clearText() {
+
+      textArea.value = "";
+
+      updateCounts();
+
+    }
+
+    textArea.addEventListener("input", updateCounts);
+
+  </script>
+
+</body>
+
+</html>
+
